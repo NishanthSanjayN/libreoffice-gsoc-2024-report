@@ -1,74 +1,81 @@
-# My GSoC 2024 Report
+Google Summer of Code 2024 – Final Report
 
-**Student:** [Mohit Marathe](https://gerrit.libreoffice.org/q/owner:mohitmarathe@proton.me)
+Student: Mohit Marathe
+Organization: LibreOffice (The Document Foundation)
+Project: Comments in Sidebar
+Mentors: Sarper Akdemir, Heiko Tietze
 
-**Organization:** [LibreOffice](https://www.libreoffice.org/)
+1. Introduction
+LibreOffice is a powerful and free open-source office suite, widely known for its feature-rich tools and active community. As part of Google Summer of Code 2024, my project focused on enhancing the user experience in LibreOffice Writer by introducing a Comments Sidebar—an alternative and modern way to interact with comments, designed to improve collaboration, readability, and workflow efficiency.
 
-**Project:** [Comments in Sidebar](https://summerofcode.withgoogle.com/programs/2024/projects/Hht1NBGx)
+2. Project Motivation
+Currently, comments in Writer are displayed in the document margin. While functional, this layout becomes overwhelming in heavily annotated documents, and it limits interaction. The goal of this project was to create a sidebar view for comments—offering a more intuitive, scalable, and structured interface, similar to what users are familiar with in modern word processors like Microsoft Word or Google Docs.
 
-**Mentor:** [Sarper Akdemir](https://de.linkedin.com/in/sarper-akdemir), [Heiko Tietze](https://de.linkedin.com/in/heiko-tietze-4204aa30)
+3. Project Objectives
+The primary objectives of the project were:
 
----
+Develop a sidebar panel for comments using GTK and LibreOffice’s UI framework
 
-## Overview
+Synchronize sidebar comments with the existing margin annotations
 
-LibreOffice is a free and powerful office suite, and a successor to OpenOffice.org (commonly known as OpenOffice).
-Its clean interface and feature-rich tools help you unleash your creativity and enhance your productivity.
-Check out the [official site](https://www.libreoffice.org/) for more information.
+Support all standard comment actions (edit, reply, delete, resolve)
 
-## Project
+Add sorting and filtering options for easier navigation
 
-The goal of this project is to enhance the LibreOffice Writer by implementing a comments sidebar feature.
-Currently, comments are displayed at document margin, which can be cumbersome and disrupt the user’s workflow.
-By adding the comment section in the sidebar, the aim is to improve usability, streamline the commenting process, and enhance collaboration within the application.
+Ensure real-time updates via event broadcasting
 
-## Work
+Improve UX with context menus and future-ready design
 
-Since I made a rough plan of how I would implement the feature during the proposal phase, I started working on the project right from the _Community Bonding_ period.
-I started with creating the UI of the comments panel, the thread widget and the comment widget using **Glade**. In the comments panel, the Gtk Box container will accomodate
-the threads and the Gtk Box inside the thread widget will accomodate the comments.
+4. Development Approach
+During the Community Bonding period, I created a development roadmap and began work on the UI using Glade, LibreOffice’s preferred interface designer. The sidebar design includes a comments panel to hold multiple thread widgets, with each thread containing one or more comment widgets. GtkBox containers were used for flexible layout handling.
 
-After that, I worked on the method to populate the comments in the comments panel. It will first collect all the existing comments in the doc. Then to display comments in 
-thread, it will iterate through all the comments to get its root comment using `SwAnnotationWin::GetTopReplyNote` and then create the thread by adding its replies using 
-`SwPostItMgr::GetNextPostIt`. I used a hashmap (`std::unordered_map`) to keep track of all the threads and comments and to optimize this process.
+5. Backend & Data Binding
+To populate the comments sidebar, I implemented logic that retrieves all annotations from the document. Using internal functions like SwAnnotationWin::GetTopReplyNote (for root comments) and SwPostItMgr::GetNextPostIt (for replies), the system builds comment threads dynamically. A std::unordered_map tracks and organizes comment-thread relationships, enabling fast rendering and future updates.
 
-There is no plan the remove the annotation margin, at least not anytime soon. So I needed to syncronize the comments in comments panel with that of annotation margin.
-While working on this, I was introduced to event handling mechanism of LibreOffice. 
-There are two main classes: `SfxBroadcaster` and `SfxListener`. The broadcaster has a list of listeners to which it broadcasts the message if an event happens.
-Using these, I created a method `Notify` which reacts to different events, like comments being added, edited, resolved and deleted, by reflecting the same changes in the
-comments panel.
+6. Real-Time Synchronization
+To ensure consistency between the traditional margin-based view and the new sidebar, I integrated LibreOffice’s event broadcasting system, using the SfxBroadcaster and SfxListener pattern. This allows the sidebar to respond to changes in real time—comment creation, editing, deletion, and resolution—by implementing a custom Notify method that listens to annotation events and updates the sidebar accordingly.
 
-Next thing to do was to add the ability to do all the actions like edit, delete, reply, resolve from the comments panel itself and to sync the comments in annotation margin.
-It works basically like this: `Do some action -> Find the corresponding annotation window -> Do that action there -> Notify the comments panel -> Reflect the changes`.
+7. Functional Interactions
+All standard comment actions are now fully supported from the sidebar. When a user edits, deletes, replies to, or resolves a comment, the change is performed in the backend, then broadcasted and reflected in both the margin and sidebar interfaces. This bi-directional synchronization ensures a seamless editing experience.
 
-Now that the comments panel was able to do the basic things, it was time to add some new features like sort and filter. For sorting, I modified the `populateComments` (which 
-was responsible was collecting the existing comments and displaying it in threads) to first empty the comments panel, sort the collection of existing comments based on sorting
-option selected i.e. By Position and by time) and then display it. For filter (by date or author), it was as simple as setting the visibility of widget based on the selected 
-option.
+8. Sorting, Filtering & UX Enhancements
+To enhance usability, I introduced:
 
-Then I added context menu for the comment widget, which contains options like: Edit, Reply, Delete, Resolve, Delete Thread and Resolve Thread.
+Sorting: By document position or timestamp
 
-## What's left to do
+Filtering: By author or date range
 
-- Adding connectors: While hovering over the reference text in the doc, it should show the root comment in a balloon tip.
-- Creating custom widget for displaying author name with customizable colors
-- Rich Text Formatting
+Context Menus: Right-click options for quick actions like “Edit”, “Reply”, “Resolve Thread”, etc.
+These additions provide users with flexibility and better control over collaborative editing, particularly in large documents.
 
-## Conclusion
+9. Remaining Work & Future Scope
+Some features are still in progress or planned for future contributions:
 
-It was really fun working on this project and I got to learn a lot from it! I got to know some amazing people like my mentors Sarper and Heiko.
-I'm immensely grateful to LibreOffice for giving me the opportunity to work on this project. A very big thanks to my mentor Sarper Akdemir for
-guiding me on this project and for being so understanding & supportive! The comments panel would not have been possible without you and Heiko.
+Hover Connector: Display root comment in a balloon tooltip when hovering over the reference text in the document
 
-I wish to continue being part of the LibreOffice community and contribute to it!
+Custom Author Badges: Add color-coded author indicators for better visual context
 
+Rich Text Formatting: Enable bold, italic, and other text styles inside comment content
 
-## Commits
+These features are designed to bring the comment system closer to modern standards while preserving LibreOffice’s open-source integrity.
 
-- [sw: add Comments Panel in sidebar](https://gerrit.libreoffice.org/c/core/+/167840)
-- [sort comments by time or position](https://gerrit.libreoffice.org/c/core/+/170492)
-- [filter by author & time](https://gerrit.libreoffice.org/c/core/+/170497)
-- [display reference text on thread](https://gerrit.libreoffice.org/c/core/+/171233)
-- [add context menu for comments & some other changes](https://gerrit.libreoffice.org/c/core/+/170996)
-- [sw: make show option work in comments panel](https://gerrit.libreoffice.org/c/core/+/172379)
-- [sw: add icons in sidebar's comment widget](https://gerrit.libreoffice.org/c/core/+/172380)
+10. Conclusion & Acknowledgements
+Working with LibreOffice through GSoC has been an incredible learning experience. I gained practical skills in C++, GTK, large-scale software architecture, and open-source collaboration. I'm especially thankful to my mentors, Sarper Akdemir and Heiko Tietze, for their continuous support, code reviews, and invaluable guidance throughout the project.
+
+I look forward to continuing my journey with the LibreOffice community and contributing further to its mission of open-source excellence. Thank you to The Document Foundation and Google Summer of Code for this wonderful opportunity.
+
+Commits Overview
+
+sw: add Comments Panel in sidebar
+
+sort comments by time or position
+
+filter by author & time
+
+display reference text on thread
+
+add context menu for comments & some other changes
+
+sw: make show option work in comments panel
+
+sw: add icons in sidebar's comment widget
